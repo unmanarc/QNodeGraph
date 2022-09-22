@@ -19,6 +19,17 @@ void ItemWidget::setInternalObjectID()
     setObjectName("ITEM-" + id);
 }
 
+bool ItemWidget::getCurrentFilterMatch() const
+{
+    return currentFilterMatch;
+}
+
+void ItemWidget::setCurrentFilterMatch(bool newCurrentFilterMatch)
+{
+    currentFilterMatch = newCurrentFilterMatch;
+    update();
+}
+
 void ItemWidget::localInit()
 {
     setInternalObjectID();
@@ -141,7 +152,7 @@ void ItemWidget::filter(const QString &filterText)
     else
     {
         currentFilterMatch = false;
-        for (const auto & tag: tags)
+        for (const auto & tag: qAsConst(tags))
         {
             if (tag.toLower().contains(filterText.toLower()))
                 currentFilterMatch = true;

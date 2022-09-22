@@ -234,15 +234,35 @@ bool GraphWidget::setXML(const QString &xml)
     return true;
 }
 
-void GraphWidget::setFilterText(const QString & filterText)
+void GraphWidget::setFilterText(const QString & filterText, bool includeLinkedElements)
 {
     this->filterText = filterText;
+    this->includeLinkedElementsOnFilter = includeLinkedElements;
 
+    // Filter+Mark every element...
     for (auto item : allRecursiveItems(this))
     {
         item->filter(this->filterText);
     }
 
+    // Discovery linked elements and mark them:
+    if (includeLinkedElements)
+    {
+        for (auto item : allRecursiveItems(this))
+        {
+            if (item->getCurrentFilterMatch())
+            {
+                for (void * _link : item->getLinks())
+                {
+                    Link * link = (Link *)_link;
+                    if (link->getItem1()!=item)
+                        ((ItemWidget *)link->getItem1())->setCurrentFilterMatch(true);
+                    else if (link->getItem2()!=item)
+                        ((ItemWidget *)link->getItem2())->setCurrentFilterMatch(true);
+                }
+            }
+        }
+    }
     update();
 }
 
@@ -493,8 +513,8 @@ void GraphWidget::focusOutEvent ( QFocusEvent * )
 
 
 void GraphWidget::resizeOnMouseMove(QWidget * v, QMouseEvent *e,
-                                          bool resizingX, bool resizingY,
-                                          const QPoint & mouseCurrentPos)
+                                    bool resizingX, bool resizingY,
+                                    const QPoint & mouseCurrentPos)
 {
     // 5px X 5px in the end, resize area.
     if (  (mouseCurrentPos.y()<(v->size().height()) && mouseCurrentPos.y()>=(v->size().height()-5))&&

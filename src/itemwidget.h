@@ -219,6 +219,17 @@ public:
      */
     void setBelongsToLayerZero(const bool &belongsToLayerZero);
 
+    /**
+     * @brief getCurrentFilterMatch Get if the current filter matched the element
+     * @return true if matched
+     */
+    bool getCurrentFilterMatch() const;
+    /**
+     * @brief setCurrentFilterMatch Set that the current filter matched the element
+     * @param newCurrentFilterMatch true if matched
+     */
+    void setCurrentFilterMatch(bool newCurrentFilterMatch);
+
 protected:
     virtual void paintEvent( QPaintEvent* );
     void localInit();

@@ -323,7 +323,7 @@ public:
      * @brief setFilterText Set filter text (to every item)
      * @param _filterText
      */
-    void setFilterText(const QString &filterText);
+    void setFilterText(const QString &filterText, bool includeLinkedElements = false);
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // GRAPHIC PROPERTIES:
@@ -477,6 +477,7 @@ private:
 
     // Filter:
     QString filterText;
+    bool includeLinkedElementsOnFilter;
 
     // Mouse:
     QRect mouseRect;
