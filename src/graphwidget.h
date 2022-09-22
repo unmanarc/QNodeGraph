@@ -324,6 +324,11 @@ public:
      * @param _filterText
      */
     void setFilterText(const QString &filterText, bool includeLinkedElements = false);
+    /**
+     * @brief getFilterText Get Filter Text
+     * @return filter text
+     */
+    const QString &getFilterText() const;
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // GRAPHIC PROPERTIES:
@@ -463,6 +468,7 @@ public:
                                    bool * resizingX, bool * resizingY
                                    );
     static void checkAndFixChildrenPositions(QWidget *v, int vOffset = 0 );
+
 
 private:
     bool autoArrange;

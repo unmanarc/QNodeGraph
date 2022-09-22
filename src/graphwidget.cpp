@@ -248,6 +248,8 @@ void GraphWidget::setFilterText(const QString & filterText, bool includeLinkedEl
     // Discovery linked elements and mark them:
     if (includeLinkedElements)
     {
+
+        QList<ItemWidget *> toMatch;
         for (auto item : allRecursiveItems(this))
         {
             if (item->getCurrentFilterMatch())
@@ -256,13 +258,18 @@ void GraphWidget::setFilterText(const QString & filterText, bool includeLinkedEl
                 {
                     Link * link = (Link *)_link;
                     if (link->getItem1()!=item)
-                        ((ItemWidget *)link->getItem1())->setCurrentFilterMatch(true);
+                        toMatch.push_back((ItemWidget *)link->getItem1());
                     else if (link->getItem2()!=item)
-                        ((ItemWidget *)link->getItem2())->setCurrentFilterMatch(true);
+                        toMatch.push_back((ItemWidget *)link->getItem2());
                 }
             }
         }
+
+        for (auto item : toMatch)
+            item->setCurrentFilterMatch(true);
     }
+
+
     update();
 }
 
@@ -1145,6 +1152,11 @@ void GraphWidget::orderMouseRectCoordinates()
         mouseRect.setHeight(mouseRect.y());
         mouseRect.setY(flip);
     }
+}
+
+const QString &GraphWidget::getFilterText() const
+{
+    return filterText;
 }
 
 const QColor &GraphWidget::getDefaultNodeFillColor2() const

@@ -2,6 +2,7 @@
 #include "itemwidget.h"
 #include <cmath>
 
+#include <QDebug>
 using namespace QNodeGraph;
 
 Link::Link()
@@ -29,37 +30,42 @@ void Link::paint(QPainter &painter, const QColor & backgroundColor)
     ItemWidget * item1 = (ItemWidget *) this->getItem1();
     ItemWidget * item2 = (ItemWidget *) this->getItem2();
 
-    QColor colorRectx = this->getColor();
+    QColor linkColor = this->getColor();
 
-    if (colorRectx==backgroundColor)
-        colorRectx = QColor(255-backgroundColor.red(),
+    if (linkColor==backgroundColor)
+        linkColor = QColor(255-backgroundColor.red(),
                             255-backgroundColor.green(),
                             255-backgroundColor.blue());
 
 
     double mytransp = (item1->getZoomOutFactor()<item2->getZoomOutFactor() ? item2->getZoomOutFactor() : item1->getZoomOutFactor());
 
-    if (item1->getIsSelected() || item2->getIsSelected()) {
+    if (item1->getIsSelected() || item2->getIsSelected() )
+    {
+        // Don't reduce...
+    }
+    else if (item1->getCurrentFilterMatch() && item2->getCurrentFilterMatch())
+    {
+        // Don't reduce...
     }
     else
-        colorRectx.setAlphaF(mytransp);
+        linkColor.setAlphaF(mytransp);
 
     QPen lpen;
-    lpen.setColor(colorRectx);
-    if (item1->getIsSelected() || item2->getIsSelected())
+    lpen.setColor(linkColor);
+    if (item1->getIsSelected() || item2->getIsSelected() || (item1->getCurrentFilterMatch() && item2->getCurrentFilterMatch()))
     {
-        int r = colorRectx.red()+80;
-        int g = colorRectx.green()+80;
-        int b = colorRectx.blue()+80;
+        int r = linkColor.red()+80;
+        int g = linkColor.green()+80;
+        int b = linkColor.blue()+80;
         if (r>255) r = 255;
         if (g>255) g = 255;
         if (b>255) b = 255;
         lpen.setColor(QColor(r,g,b));
-        lpen.setWidth(2);
+        lpen.setWidth(3);
     }
 
     painter.setPen(lpen);
-
 
     QPoint element1Pos = item1->getAbsolutePos() + item1->getCenterPoint();
     QPoint element2Pos = item2->getAbsolutePos() + item2->getCenterPoint();

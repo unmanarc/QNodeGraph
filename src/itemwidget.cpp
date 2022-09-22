@@ -12,6 +12,8 @@
 #include <QPainter>
 #include <cmath>
 
+#define FILTERED_FACTOR 0.1
+
 using namespace QNodeGraph;
 
 void ItemWidget::setInternalObjectID()
@@ -175,14 +177,33 @@ void ItemWidget::paintEvent(QPaintEvent * e)
     /*qreal inverseDPR = 1.0 / ((QWidget *)parent())->devicePixelRatio();
     painter.scale(inverseDPR, inverseDPR);*/
 
-    QColor rectBorderColor = borderColor;
-
-    if (currentFilterMatch)
-        rectBorderColor.setRgb(255,0,0);
-
     // Set the relative size according to the selection + layer.
     double layerSizeMultiplier = ( mouseover || selected ? 1.0 : 1.0-( zoomOutLevel>7? 0.6 : zoomOutLevel/10.0 ) );
+    unsigned int iconHeight = IconSize.height() * layerSizeMultiplier;
+    unsigned int iconWidth = IconSize.width() * layerSizeMultiplier;
 
+    // Icon Pixmap
+    QPixmap iconPixmap = icon->pixmap(iconWidth,iconHeight, (mouseover || selected) ? QIcon::Selected : QIcon::Normal );
+
+    // Colors:
+    QColor localBorderColor = borderColor;
+    QColor localFillColor = fillColor;
+    QColor localFillColor2 = fillColor2;
+    QColor localTextColor = textColor;
+    QColor localSubTextColor = subTextColor;
+
+    bool usingFilter = !GRAPH->getFilterText().isEmpty();
+
+    if (usingFilter)
+    {
+        if (currentFilterMatch)
+            localBorderColor.setRgb(255,80,100);
+        else
+            localBorderColor.setAlpha(127);
+    }
+
+
+    // Adapt selected border color to graph...
     QColor colorSelectedNow = selectedBorderColor;
     if (GRAPH->getBackgroundColor() == selectedBorderColor)
         colorSelectedNow = QColor(
@@ -190,16 +211,30 @@ void ItemWidget::paintEvent(QPaintEvent * e)
                     255-GRAPH->getBackgroundColor().green(),
                     255-GRAPH->getBackgroundColor().blue()
                     );
-    painter.setPen(rectBorderColor);
 
-    QColor localFillColor = fillColor;
-    QColor localFillColor2 = fillColor2;
+    //
+    painter.setPen(localBorderColor);
+
+    if (!usingFilter && ( selected || mouseover ))
+        painter.setPen(colorSelectedNow);
+
+
+    if (usingFilter && !currentFilterMatch)
+    {
+        localFillColor.setAlphaF(FILTERED_FACTOR);
+        localFillColor2.setAlphaF(FILTERED_FACTOR);
+        localSubTextColor.setAlphaF(FILTERED_FACTOR);
+        localTextColor.setAlphaF(FILTERED_FACTOR);
+    }
 
     if (selected || mouseover)
+    {
         localFillColor.setAlphaF( 1.0 );
-    if (selected || mouseover)
         localFillColor2.setAlphaF( 1.0 );
+        localSubTextColor = selectedBorderColor;
+    }
 
+    // FILL:
     switch (this->fillMode)
     {
     case ITEMBOX_FILL_GRADIENT:
@@ -227,9 +262,6 @@ void ItemWidget::paintEvent(QPaintEvent * e)
         // Draw solo rectangle
         QRect rectangle(SPACING_BORDER1, SPACING_BORDER1, size().width()-(SPACING_BORDER1*2), size().height()-(SPACING_BORDER1*2));
 
-        if ( selected || mouseover )
-            painter.setPen(colorSelectedNow);
-
         if (!borderRoundRectPixels)
             painter.drawRect(rectangle);
         else
@@ -240,9 +272,6 @@ void ItemWidget::paintEvent(QPaintEvent * e)
         QRect rectangle(0.0, 0.0, size().width(), size().height());
 
         // Draw circle/ellipse...
-        if ( selected || mouseover )
-            painter.setPen(colorSelectedNow);
-
         painter.drawEllipse(rectangle.center(),(rectangle.width()/2)-1, (rectangle.height()/2)-1 );
     } break;
     default:
@@ -251,19 +280,18 @@ void ItemWidget::paintEvent(QPaintEvent * e)
     } break;
     }
 
-    unsigned int iconHeight = IconSize.height() * layerSizeMultiplier;
-    unsigned int iconWidth = IconSize.width() * layerSizeMultiplier;
 
-    // Icon Pixmap
-    QPixmap iconPixmap = icon->pixmap(iconWidth,iconHeight, (mouseover || selected) ? QIcon::Selected : QIcon::Normal );
-
+    // TEXT+ICON:
     switch (textPosition)
     {
     case TEXTPOS_RIGHT:
     {
         // Draw Icon pixmap
+
+        if ( usingFilter && !currentFilterMatch ) painter.setOpacity(FILTERED_FACTOR);
         painter.drawPixmap(SPACING_BORDER1+SPACING_HSIDES,
                            SPACING_BORDER1+SPACING_VSIDES, iconPixmap);
+        painter.setOpacity(1);
 
         if (anchored)
             painter.drawPixmap(3,3+iconPixmap.height()-8, pAnchor);
@@ -274,7 +302,7 @@ void ItemWidget::paintEvent(QPaintEvent * e)
         QFont fontTextSB = textFont;
         fontTextSB.setPointSize(fontTextSB.pointSize()*layerSizeMultiplier);
         QFontMetrics metrics(fontTextSB);
-        painter.setPen(textColor);
+        painter.setPen(localTextColor);
         painter.setFont(fontTextSB);
         painter.drawText( SPACING_BORDER1+SPACING_HSIDES+iconWidth+SPACING_HSIDES,
                           (size().height()/2)-(SPACING_HSIDES/2)-metrics.height(),
@@ -286,7 +314,7 @@ void ItemWidget::paintEvent(QPaintEvent * e)
         QFont fontSubTextSB = subTextFont;
         fontSubTextSB.setPointSize(fontSubTextSB.pointSize()*layerSizeMultiplier);
         QFontMetrics submetrics(fontSubTextSB);
-        painter.setPen( (selected || mouseover)? selectedBorderColor : subTextColor);
+        painter.setPen( localSubTextColor);
         painter.setFont(fontSubTextSB);
         painter.drawText( SPACING_BORDER1+SPACING_HSIDES+iconWidth+SPACING_HSIDES,
                           (size().height()/2)+(SPACING_HSIDES/2),
@@ -298,8 +326,10 @@ void ItemWidget::paintEvent(QPaintEvent * e)
     case TEXTPOS_LEFT:
     {
         // Draw pixmap
+        if ( usingFilter && !currentFilterMatch ) painter.setOpacity(FILTERED_FACTOR);
         painter.drawPixmap( size().width()-(iconWidth+SPACING_BORDER1+SPACING_HSIDES),
                             SPACING_BORDER1+SPACING_HSIDES, iconPixmap);
+        painter.setOpacity(1);
 
         if (anchored)
             painter.drawPixmap(size().width()-iconWidth, 3+iconPixmap.height()-8, pAnchor);
@@ -310,7 +340,7 @@ void ItemWidget::paintEvent(QPaintEvent * e)
         QFont fontTextSB = textFont;
         fontTextSB.setPointSize(fontTextSB.pointSize()*layerSizeMultiplier);
         QFontMetrics metrics(fontTextSB);
-        painter.setPen(textColor);
+        painter.setPen(localTextColor);
         painter.setFont(fontTextSB);
         painter.drawText( SPACING_BORDER1+SPACING_HSIDES,
                           (size().height()/2)-(SPACING_VSIDES/2)-metrics.height(),
@@ -322,7 +352,7 @@ void ItemWidget::paintEvent(QPaintEvent * e)
         QFont fontSubTextSB = subTextFont;
         fontSubTextSB.setPointSize(fontSubTextSB.pointSize()*layerSizeMultiplier);
         QFontMetrics submetrics(fontSubTextSB);
-        painter.setPen( (selected || mouseover)? selectedBorderColor : subTextColor);
+        painter.setPen( localSubTextColor);
         painter.setFont(fontSubTextSB);
         painter.drawText( SPACING_BORDER1+SPACING_HSIDES,
                           (size().height()/2)+(SPACING_VSIDES/2),
@@ -334,7 +364,9 @@ void ItemWidget::paintEvent(QPaintEvent * e)
     case TEXTPOS_BOTTOM:
     {
         // Draw pixmap
+        if ( usingFilter && !currentFilterMatch ) painter.setOpacity(FILTERED_FACTOR);
         painter.drawPixmap( (size().width()/2) - (iconWidth/2) ,  (size().height()/2)-iconHeight , iconPixmap);
+        painter.setOpacity(1);
 
         if (anchored)
             painter.drawPixmap(size().width()/2 - iconWidth/2 +  3, 3+iconPixmap.height()-8, pAnchor);
@@ -345,7 +377,7 @@ void ItemWidget::paintEvent(QPaintEvent * e)
         QFont fontTextSB = textFont;
         fontTextSB.setPointSize(fontTextSB.pointSize()*layerSizeMultiplier);
         QFontMetrics metrics(fontTextSB);
-        painter.setPen(textColor);
+        painter.setPen(localTextColor);
         painter.setFont(fontTextSB);
         painter.drawText(  0,  (size().height()/2) + (SPACING_VSIDES/2) , size().width(), metrics.height(), Qt::AlignCenter , text);
 
@@ -353,7 +385,7 @@ void ItemWidget::paintEvent(QPaintEvent * e)
         QFont fontSubTextSB = subTextFont;
         fontSubTextSB.setPointSize(fontSubTextSB.pointSize()*layerSizeMultiplier);
         QFontMetrics submetrics(fontSubTextSB);
-        painter.setPen( (selected || mouseover)? selectedBorderColor : subTextColor);
+        painter.setPen( localSubTextColor);
         painter.setFont(fontSubTextSB);
         painter.drawText(  0,  (size().height()/2) + (SPACING_VSIDES/2) + metrics.height() + (SPACING_VSIDES/2) , size().width(), submetrics.height(), Qt::AlignCenter , subText);
     }
