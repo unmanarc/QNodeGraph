@@ -264,7 +264,8 @@ void ItemWidget::paintEvent(QPaintEvent * e)
     {
         localFillColor.setAlphaF( 1.0 );
         localFillColor2.setAlphaF( 1.0 );
-        localSubTextColor = selectedBorderColor;
+        localSubTextColor.setAlphaF(1);
+        localTextColor.setAlphaF(1);
     }
 
     // FILL:
