@@ -402,6 +402,9 @@ void GraphWidget::paintEvent(QPaintEvent *e)
 {
     QPainter painter(this);
 
+    /*qreal inverseDPR = 1.0 / ((QWidget *)parent())->devicePixelRatio();
+    painter.scale(inverseDPR, inverseDPR);*/
+
     QPixmap drawingArea (size().width(),size().height());
     drawingArea.fill(backgroundColor);
 

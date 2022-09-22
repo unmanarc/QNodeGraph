@@ -160,6 +160,10 @@ void ItemWidget::paintEvent(QPaintEvent * e)
     // Draw icon and propietries...
     QPainter painter(this);
 
+
+    /*qreal inverseDPR = 1.0 / ((QWidget *)parent())->devicePixelRatio();
+    painter.scale(inverseDPR, inverseDPR);*/
+
     QColor rectBorderColor = borderColor;
 
     if (currentFilterMatch)
@@ -340,7 +344,7 @@ void ItemWidget::paintEvent(QPaintEvent * e)
         QFontMetrics submetrics(fontSubTextSB);
         painter.setPen( (selected || mouseover)? selectedBorderColor : subTextColor);
         painter.setFont(fontSubTextSB);
-        painter.drawText(  0,  (size().height()/2) + (SPACING_VSIDES/2) + metrics.height() + (SPACING_VSIDES/2) , size().width(), submetrics.height(), Qt::AlignCenter , text);
+        painter.drawText(  0,  (size().height()/2) + (SPACING_VSIDES/2) + metrics.height() + (SPACING_VSIDES/2) , size().width(), submetrics.height(), Qt::AlignCenter , subText);
     }
         break;
     default:
