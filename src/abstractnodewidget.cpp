@@ -106,7 +106,7 @@ bool AbstractNodeWidget::setXML(const QString & widgetName, const QString & xml)
     {
         if (child.toElement().tagName() == "properties")
         {
-            SetNodeXMLLocalProperties(child);
+            setNodeXMLLocalProperties(child);
         }
         else if (child.toElement().tagName() == "data")
         {
@@ -399,7 +399,7 @@ void AbstractNodeWidget::moveToRandom()
     toPaint = QRect(0,0,0,0);
 }
 
-bool AbstractNodeWidget::SetNodeXMLLocalProperties(const QDomNode & master)
+bool AbstractNodeWidget::setNodeXMLLocalProperties(const QDomNode & master)
 {
     QDomNode child = master.firstChild();
     while (!child.isNull())

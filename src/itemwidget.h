@@ -262,6 +262,7 @@ private:
 
     // Linked Nodes
     QList<void *> links;
+    bool isOneLinkedNodeFiltered();
 
     // Temp vars
     int currentLayer, sortPosition;
@@ -270,8 +271,8 @@ private:
     void recalculateSize();
 
     // XML
-    bool SetNodeXMLLinks(const QDomNode & master);
-    bool SetXMLLinks(const QDomNode & master);
+    bool setNodeXMLLinks(const QDomNode & master);
+    bool setXMLLinks(const QDomNode & master);
 };
 
 }

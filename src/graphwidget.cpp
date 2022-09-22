@@ -244,7 +244,7 @@ void GraphWidget::setFilterText(const QString & filterText, bool includeLinkedEl
     {
         item->filter(this->filterText);
     }
-
+/*
     // Discovery linked elements and mark them:
     if (includeLinkedElements)
     {
@@ -268,7 +268,7 @@ void GraphWidget::setFilterText(const QString & filterText, bool includeLinkedEl
         for (auto item : toMatch)
             item->setCurrentFilterMatch(true);
     }
-
+*/
 
     update();
 }

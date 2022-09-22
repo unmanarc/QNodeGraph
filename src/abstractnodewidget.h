@@ -293,7 +293,7 @@ public:
 
 protected:
     // XML SET/GET
-    bool SetNodeXMLLocalProperties(const QDomNode &master);
+    bool setNodeXMLLocalProperties(const QDomNode &master);
 
     virtual QString getXMLLocal()=0;
     virtual QString getXMLLocalProperties()=0;

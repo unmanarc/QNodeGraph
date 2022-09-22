@@ -13,12 +13,35 @@
 #include <cmath>
 
 #define FILTERED_FACTOR 0.1
+#define LINK_FILTERED_FACTOR 0.7
 
 using namespace QNodeGraph;
 
 void ItemWidget::setInternalObjectID()
 {
     setObjectName("ITEM-" + id);
+}
+
+bool ItemWidget::isOneLinkedNodeFiltered()
+{
+
+    for ( auto i : links )
+    {
+        Link * link = (Link *)i;
+
+        if (link->getItem1()==this && ((ItemWidget *)link->getItem2())->getCurrentFilterMatch())
+        {
+            return true;
+        }
+
+        if (link->getItem2()==this && ((ItemWidget *)link->getItem1())->getCurrentFilterMatch())
+        {
+            return true;
+        }
+
+    }
+    return false;
+
 }
 
 bool ItemWidget::getCurrentFilterMatch() const
@@ -197,11 +220,12 @@ void ItemWidget::paintEvent(QPaintEvent * e)
     if (usingFilter)
     {
         if (currentFilterMatch)
-            localBorderColor.setRgb(255,80,100);
+            localBorderColor.setRgb(255,30,50);
+        else if (isOneLinkedNodeFiltered())
+            localBorderColor.setRgb(100,100,180);
         else
             localBorderColor.setAlpha(127);
     }
-
 
     // Adapt selected border color to graph...
     QColor colorSelectedNow = selectedBorderColor;
@@ -218,13 +242,22 @@ void ItemWidget::paintEvent(QPaintEvent * e)
     if (!usingFilter && ( selected || mouseover ))
         painter.setPen(colorSelectedNow);
 
-
     if (usingFilter && !currentFilterMatch)
     {
-        localFillColor.setAlphaF(FILTERED_FACTOR);
-        localFillColor2.setAlphaF(FILTERED_FACTOR);
-        localSubTextColor.setAlphaF(FILTERED_FACTOR);
-        localTextColor.setAlphaF(FILTERED_FACTOR);
+        if (isOneLinkedNodeFiltered())
+        {
+            localFillColor.setAlphaF(LINK_FILTERED_FACTOR);
+            localFillColor2.setAlphaF(LINK_FILTERED_FACTOR);
+            localSubTextColor.setAlphaF(LINK_FILTERED_FACTOR);
+            localTextColor.setAlphaF(LINK_FILTERED_FACTOR);
+        }
+        else
+        {
+            localFillColor.setAlphaF(FILTERED_FACTOR);
+            localFillColor2.setAlphaF(FILTERED_FACTOR);
+            localSubTextColor.setAlphaF(FILTERED_FACTOR);
+            localTextColor.setAlphaF(FILTERED_FACTOR);
+        }
     }
 
     if (selected || mouseover)
@@ -280,6 +313,13 @@ void ItemWidget::paintEvent(QPaintEvent * e)
     } break;
     }
 
+    if ( usingFilter && !currentFilterMatch )
+    {
+        if (isOneLinkedNodeFiltered())
+            painter.setOpacity(LINK_FILTERED_FACTOR);
+        else
+            painter.setOpacity(FILTERED_FACTOR);
+    }
 
     // TEXT+ICON:
     switch (textPosition)
@@ -287,8 +327,6 @@ void ItemWidget::paintEvent(QPaintEvent * e)
     case TEXTPOS_RIGHT:
     {
         // Draw Icon pixmap
-
-        if ( usingFilter && !currentFilterMatch ) painter.setOpacity(FILTERED_FACTOR);
         painter.drawPixmap(SPACING_BORDER1+SPACING_HSIDES,
                            SPACING_BORDER1+SPACING_VSIDES, iconPixmap);
         painter.setOpacity(1);
@@ -326,7 +364,6 @@ void ItemWidget::paintEvent(QPaintEvent * e)
     case TEXTPOS_LEFT:
     {
         // Draw pixmap
-        if ( usingFilter && !currentFilterMatch ) painter.setOpacity(FILTERED_FACTOR);
         painter.drawPixmap( size().width()-(iconWidth+SPACING_BORDER1+SPACING_HSIDES),
                             SPACING_BORDER1+SPACING_HSIDES, iconPixmap);
         painter.setOpacity(1);
@@ -364,7 +401,6 @@ void ItemWidget::paintEvent(QPaintEvent * e)
     case TEXTPOS_BOTTOM:
     {
         // Draw pixmap
-        if ( usingFilter && !currentFilterMatch ) painter.setOpacity(FILTERED_FACTOR);
         painter.drawPixmap( (size().width()/2) - (iconWidth/2) ,  (size().height()/2)-iconHeight , iconPixmap);
         painter.setOpacity(1);
 
@@ -772,7 +808,7 @@ bool ItemWidget::setXMLLocalProperties(const QDomNode & child)
     return true;
 }
 
-bool ItemWidget::SetXMLLinks(const QDomNode &master)
+bool ItemWidget::setXMLLinks(const QDomNode &master)
 {
     QString id1;
     QString id2;
@@ -826,14 +862,14 @@ bool ItemWidget::SetXMLLinks(const QDomNode &master)
     return true;
 }
 
-bool ItemWidget::SetNodeXMLLinks(const QDomNode &master)
+bool ItemWidget::setNodeXMLLinks(const QDomNode &master)
 {
     QDomNode child = master.firstChild();
     while (!child.isNull())
     {
         if (child.toElement().tagName() == "link")
         {
-            SetXMLLinks(child);
+            setXMLLinks(child);
         }
         child = child.nextSibling();
     }
@@ -845,7 +881,7 @@ bool ItemWidget::setXMLLocal(const QDomNode & child)
 {
     if (child.toElement().tagName() == "links")
     {
-        SetNodeXMLLinks(child);
+        setNodeXMLLinks(child);
     }
     return true;
 }

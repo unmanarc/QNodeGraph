@@ -44,7 +44,7 @@ void Link::paint(QPainter &painter, const QColor & backgroundColor)
     {
         // Don't reduce...
     }
-    else if (item1->getCurrentFilterMatch() && item2->getCurrentFilterMatch())
+    else if (item1->getCurrentFilterMatch() || item2->getCurrentFilterMatch())
     {
         // Don't reduce...
     }
@@ -53,7 +53,7 @@ void Link::paint(QPainter &painter, const QColor & backgroundColor)
 
     QPen lpen;
     lpen.setColor(linkColor);
-    if (item1->getIsSelected() || item2->getIsSelected() || (item1->getCurrentFilterMatch() && item2->getCurrentFilterMatch()))
+    if (item1->getIsSelected() || item2->getIsSelected() || (item1->getCurrentFilterMatch() || item2->getCurrentFilterMatch()))
     {
         int r = linkColor.red()+80;
         int g = linkColor.green()+80;
